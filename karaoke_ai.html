@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>AIカラオケDJアシスタント</title>
+<style>
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background-color: #1a1a2e; /* カラオケルームを意識したダークトーン */
+    color: #ffffff;
+    padding: 20px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  .card {
+    background-color: #16213e;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+  h2 { font-size: 1.2em; color: #e94560; border-bottom: 2px solid #e94560; padding-bottom: 5px;}
+  input, select, button {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: none;
+    box-sizing: border-box;
+    font-size: 1em;
+  }
+  button {
+    background-color: #0f3460;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  button:hover { background-color: #e94560; }
+  .btn-recommend { background-color: #e94560; margin-bottom: 10px;}
+  .btn-recommend:hover { background-color: #ff5773; }
+  #resultArea {
+    background-color: #0f3460;
+    padding: 15px;
+    border-radius: 8px;
+    display: none;
+    margin-top: 15px;
+  }
+  ul { padding-left: 20px; }
+  li { margin-bottom: 10px; font-size: 1.1em; font-weight: bold; }
+  .message { color: #4caf50; font-size: 0.9em; text-align: center; height: 1em; }
+</style>
+</head>
+<body>
+
+  <h1 style="text-align: center; color: #fff;">🎤 AI DJ ASSISTANT</h1>
+
+  <!-- 事前登録画面 -->
+  <div class="card">
+    <h2>📝 持ち歌の事前登録</h2>
+    <p style="font-size: 0.9em; color: #aaa;">普段歌う曲と、その曲のイメージを登録します。</p>
+    <input type="text" id="songTitle" placeholder="曲名 (例: マリーゴールド)" required>
+    <input type="text" id="artistName" placeholder="歌手名 (例: あいみょん)" required>
+    <select id="songCategory">
+      <option value="盛り上げ系">🔥 盛り上げ系（みんなでワイワイ）</option>
+      <option value="しんみり系">💧 しんみり系（バラード・聴かせる）</option>
+      <option value="勝負曲">✨ 勝負曲（絶対の自信あり）</option>
+    </select>
+    <button onclick="registerSong()">この曲を登録する</button>
+    <p id="regMessage" class="message"></p>
+  </div>
+
+  <!-- カラオケ本番（推薦）画面 -->
+  <div class="card">
+    <h2>🪩 カラオケ本番：今の空気は？</h2>
+    <p style="font-size: 0.9em; color: #aaa;">AI DJが今の空気に合った「間違いない選曲」を提案します。</p>
+    <button class="btn-recommend" onclick="recommend('盛り上げ系')">🔥 今はとにかく盛り上げたい！</button>
+    <button class="btn-recommend" onclick="recommend('しんみり系')">💧 ちょっと落ち着いて聴かせたい</button>
+    <button class="btn-recommend" onclick="recommend('勝負曲')">✨ ここぞの自分の見せ場！</button>
+
+    <div id="resultArea">
+      <h3 style="color: #e94560; margin-top: 0;">🎧 AI DJのオススメ選曲</h3>
+      <ul id="songList"></ul>
+    </div>
+  </div>
+
+  <script>
+    // デフォルトでいくつか曲を登録しておく（デモ用）
+    let mySongs = [
+      { title: "怪獣の花唄", artist: "Vaundy", category: "盛り上げ系" },
+      { title: "小さな恋のうた", artist: "MONGOL800", category: "盛り上げ系" },
+      { title: "ドライフラワー", artist: "優里", category: "しんみり系" },
+      { title: "Lemon", artist: "米津玄師", category: "しんみり系" },
+      { title: "残酷な天使のテーゼ", artist: "高橋洋子", category: "勝負曲" }
+    ];
+
+    function registerSong() {
+      const title = document.getElementById('songTitle').value;
+      const artist = document.getElementById('artistName').value;
+      const category = document.getElementById('songCategory').value;
+
+      if(!title || !artist) {
+        alert("曲名と歌手名を入力してください。");
+        return;
+      }
+
+      mySongs.push({ title, artist, category });
+      document.getElementById('songTitle').value = '';
+      document.getElementById('artistName').value = '';
+      
+      const msg = document.getElementById('regMessage');
+      msg.textContent = `『${title}』を登録しました！`;
+      setTimeout(() => msg.textContent = '', 3000);
+    }
+
+    function recommend(targetCategory) {
+      const filteredSongs = mySongs.filter(song => song.category === targetCategory);
+      const list = document.getElementById('songList');
+      const area = document.getElementById('resultArea');
+      list.innerHTML = '';
+
+      if(filteredSongs.length === 0) {
+        list.innerHTML = '<li style="font-weight:normal; font-size:1em;">このジャンルの曲はまだ登録されていません。</li>';
+      } else {
+        // 配列をシャッフルして最大3曲を抽出
+        const shuffled = filteredSongs.sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, 3);
+        
+        selected.forEach(song => {
+          const li = document.createElement('li');
+          li.textContent = `${song.title} / ${song.artist}`;
+          list.appendChild(li);
+        });
+      }
+      area.style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>
